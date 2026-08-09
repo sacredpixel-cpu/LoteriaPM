@@ -57,12 +57,31 @@ function App() {
 
       <button
         type="button"
-        className="icon-button mute-button"
+        className="mute-button"
         onClick={handleToggleMute}
         aria-label={muted ? 'Activar sonido' : 'Silenciar sonido'}
         title={muted ? 'Activar sonido' : 'Silenciar sonido'}
       >
-        {muted ? '\u{1F507}' : '\u{1F50A}'}
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+          <path d="M4 9v6h4l5 5V4L8 9H4z" fill="#fff" />
+          {muted ? (
+            <path
+              d="M15 9l5 5M20 9l-5 5"
+              stroke="#fff"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              fill="none"
+            />
+          ) : (
+            <path
+              d="M15.5 8.5a5 5 0 010 7M18 6a8 8 0 010 12"
+              stroke="#fff"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              fill="none"
+            />
+          )}
+        </svg>
       </button>
 
       {started && (
