@@ -1,0 +1,24 @@
+:root {
+  --bg: #e7ddc6;
+  --panel: #fdfaf2;
+  --ink: #3a2c20;
+  --gold: #a9782f;
+  --gold-dark: #7c5a24;
+  color-scheme: light;
+  font: 16px/1.4 'Georgia', 'Iowan Old Style', serif;
+  color: var(--ink);
+  background: var(--bg);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100svh;
+}
+
+#root {
+  min-height: 100svh;
+}
