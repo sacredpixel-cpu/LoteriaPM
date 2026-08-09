@@ -84,7 +84,7 @@
 .restart-button {
   position: absolute;
   top: 20px;
-  right: 20px;
+  left: 20px;
   width: 48px;
   height: 48px;
   font-size: 1.4rem;
@@ -94,7 +94,8 @@
 .mute-button {
   position: absolute;
   top: 20px;
-  left: 20px;
+  left: 50%;
+  transform: translateX(-50%);
   width: 48px;
   height: 48px;
   border: none;
@@ -109,5 +110,50 @@
 }
 
 .mute-button:active {
+  transform: translateX(-50%) translateY(1px);
+}
+
+.auto-controls {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  z-index: 10;
+}
+
+.auto-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold-dark);
+}
+
+.auto-options {
+  display: flex;
+  gap: 6px;
+}
+
+.auto-option {
+  font-family: inherit;
+  font-size: 0.75rem;
+  line-height: 1;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1.5px solid var(--gold);
+  background: var(--panel);
+  color: var(--gold-dark);
+  cursor: pointer;
+}
+
+.auto-option.active {
+  background: linear-gradient(180deg, var(--gold), var(--gold-dark));
+  color: var(--panel);
+  border-color: transparent;
+}
+
+.auto-option:active {
   transform: translateY(1px);
 }

@@ -1,12 +1,21 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { TITLE_CARD, shuffledDeck } from './data/cards'
 import './App.css'
+
+const AUTO_OPTIONS = [
+  { label: 'Off', value: null },
+  { label: '3', value: 3 },
+  { label: '5', value: 5 },
+]
 
 function App() {
   const [deck, setDeck] = useState(null)
   const [index, setIndex] = useState(0)
   const [muted, setMuted] = useState(false)
+  const [autoSeconds, setAutoSeconds] = useState(null)
   const audioRef = useRef(null)
+  const indexRef = useRef(0)
+  indexRef.current = index
 
   const started = deck !== null
   const current = started ? deck[index] : null
@@ -20,6 +29,12 @@ function App() {
     audio.src = card.audio
     audio.currentTime = 0
     audio.play().catch(() => {})
+  }
+
+  function goToIndex(newIndex) {
+    indexRef.current = newIndex
+    setIndex(newIndex)
+    playCard(deck[newIndex])
   }
 
   function handleIniciar() {
@@ -36,20 +51,28 @@ function App() {
   }
 
   function handleBack() {
-    const newIndex = Math.max(0, index - 1)
-    setIndex(newIndex)
-    playCard(deck[newIndex])
+    goToIndex(Math.max(0, indexRef.current - 1))
   }
 
   function handleForward() {
-    const newIndex = Math.min(deck.length - 1, index + 1)
-    setIndex(newIndex)
-    playCard(deck[newIndex])
+    goToIndex(Math.min(deck.length - 1, indexRef.current + 1))
   }
 
   function handleToggleMute() {
     setMuted((m) => !m)
   }
+
+  useEffect(() => {
+    if (!started || autoSeconds === null) return undefined
+    if (index >= deck.length - 1) return undefined
+
+    const timer = setTimeout(() => {
+      goToIndex(index + 1)
+    }, autoSeconds * 1000)
+
+    return () => clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [started, autoSeconds, index, deck])
 
   return (
     <div className={`screen${started ? ' screen--game' : ''}`}>
@@ -95,6 +118,23 @@ function App() {
           &#8635;
         </button>
       )}
+
+      <div className="auto-controls">
+        <span className="auto-label">Auto</span>
+        <div className="auto-options">
+          {AUTO_OPTIONS.map((opt) => (
+            <button
+              key={opt.label}
+              type="button"
+              className={`auto-option${autoSeconds === opt.value ? ' active' : ''}`}
+              onClick={() => setAutoSeconds(opt.value)}
+              aria-pressed={autoSeconds === opt.value}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
 
       <div className="card-frame">
         <img
