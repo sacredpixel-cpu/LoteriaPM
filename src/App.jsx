@@ -1,36 +1,56 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { TITLE_CARD, shuffledDeck } from './data/cards'
 import './App.css'
 
 function App() {
   const [deck, setDeck] = useState(null)
   const [index, setIndex] = useState(0)
+  const audioRef = useRef(null)
 
   const started = deck !== null
   const current = started ? deck[index] : null
   const atStart = index === 0
   const atEnd = started && index === deck.length - 1
 
+  function playCard(card) {
+    const audio = audioRef.current
+    if (!audio) return
+    audio.pause()
+    audio.src = card.audio
+    audio.currentTime = 0
+    audio.play().catch(() => {})
+  }
+
   function handleIniciar() {
-    setDeck(shuffledDeck())
+    const newDeck = shuffledDeck()
+    setDeck(newDeck)
     setIndex(0)
+    playCard(newDeck[0])
   }
 
   function handleRestart() {
-    setDeck(shuffledDeck())
+    const newDeck = shuffledDeck()
+    setDeck(newDeck)
     setIndex(0)
+    playCard(newDeck[0])
   }
 
   function handleBack() {
-    setIndex((i) => Math.max(0, i - 1))
+    const newIndex = Math.max(0, index - 1)
+    setIndex(newIndex)
+    playCard(deck[newIndex])
   }
 
   function handleForward() {
-    setIndex((i) => Math.min(deck.length - 1, i + 1))
+    const newIndex = Math.min(deck.length - 1, index + 1)
+    setIndex(newIndex)
+    playCard(deck[newIndex])
   }
 
   return (
     <div className="screen">
+      <audio ref={audioRef} preload="none" />
+
       {started && (
         <button
           type="button"
