@@ -5,6 +5,7 @@ import './App.css'
 function App() {
   const [deck, setDeck] = useState(null)
   const [index, setIndex] = useState(0)
+  const [muted, setMuted] = useState(false)
   const audioRef = useRef(null)
 
   const started = deck !== null
@@ -46,9 +47,23 @@ function App() {
     playCard(deck[newIndex])
   }
 
+  function handleToggleMute() {
+    setMuted((m) => !m)
+  }
+
   return (
     <div className={`screen${started ? ' screen--game' : ''}`}>
-      <audio ref={audioRef} preload="none" />
+      <audio ref={audioRef} muted={muted} preload="none" />
+
+      <button
+        type="button"
+        className="icon-button mute-button"
+        onClick={handleToggleMute}
+        aria-label={muted ? 'Activar sonido' : 'Silenciar sonido'}
+        title={muted ? 'Activar sonido' : 'Silenciar sonido'}
+      >
+        {muted ? '\u{1F507}' : '\u{1F50A}'}
+      </button>
 
       {started && (
         <button
