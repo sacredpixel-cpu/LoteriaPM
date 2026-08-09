@@ -29,10 +29,9 @@ function App() {
   }
 
   function handleRestart() {
-    const newDeck = shuffledDeck()
-    setDeck(newDeck)
+    audioRef.current?.pause()
+    setDeck(null)
     setIndex(0)
-    playCard(newDeck[0])
   }
 
   function handleBack() {
@@ -48,7 +47,7 @@ function App() {
   }
 
   return (
-    <div className="screen">
+    <div className={`screen${started ? ' screen--game' : ''}`}>
       <audio ref={audioRef} preload="none" />
 
       {started && (

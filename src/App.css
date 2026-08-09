@@ -18,6 +18,10 @@
   justify-content: center;
 }
 
+.screen--game .card-frame {
+  margin-top: 64px;
+}
+
 .card-image {
   max-width: min(92vw, 480px);
   max-height: 68svh;
