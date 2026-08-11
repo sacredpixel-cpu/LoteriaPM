@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { TITLE_CARD, shuffledDeck } from './data/cards'
+import { TRIVIA } from './data/trivia'
 import './App.css'
 
 const AUTO_OPTIONS = [
@@ -8,12 +9,24 @@ const AUTO_OPTIONS = [
   { label: '5', value: 5 },
 ]
 
+function shuffledOrder() {
+  const order = [0, 1, 2, 3]
+  for (let i = order.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[order[i], order[j]] = [order[j], order[i]]
+  }
+  return order
+}
+
 function App() {
   const [deck, setDeck] = useState(null)
   const [index, setIndex] = useState(0)
   const [muted, setMuted] = useState(false)
   const [autoSeconds, setAutoSeconds] = useState(null)
   const [showGrid, setShowGrid] = useState(false)
+  const [flipped, setFlipped] = useState(false)
+  const [language, setLanguage] = useState('es')
+  const [cardTrivia, setCardTrivia] = useState({})
   const audioRef = useRef(null)
   const indexRef = useRef(0)
   indexRef.current = index
@@ -22,6 +35,11 @@ function App() {
   const current = started ? deck[index] : null
   const atStart = index === 0
   const atEnd = started && index === deck.length - 1
+  const canFlip = started && autoSeconds === null && !showGrid
+
+  const triviaState = current ? cardTrivia[current.id] : null
+  const triviaFact = triviaState && TRIVIA[current.id] ? TRIVIA[current.id][triviaState.factIndex] : null
+  const trivia = triviaState && triviaFact ? { ...triviaState, fact: triviaFact } : null
 
   function playCard(card) {
     const audio = audioRef.current
@@ -35,6 +53,7 @@ function App() {
   function goToIndex(newIndex) {
     indexRef.current = newIndex
     setIndex(newIndex)
+    setFlipped(false)
     playCard(deck[newIndex])
   }
 
@@ -42,6 +61,8 @@ function App() {
     const newDeck = shuffledDeck()
     setDeck(newDeck)
     setIndex(0)
+    setFlipped(false)
+    setCardTrivia({})
     playCard(newDeck[0])
   }
 
@@ -50,6 +71,40 @@ function App() {
     setDeck(null)
     setIndex(0)
     setShowGrid(false)
+    setFlipped(false)
+    setCardTrivia({})
+  }
+
+  function handleCardTap() {
+    if (!canFlip || flipped || !current) return
+    const pool = TRIVIA[current.id]
+    if (!pool || !pool.length) return
+    audioRef.current?.pause()
+    setCardTrivia((prev) => {
+      if (prev[current.id]) return prev
+      return {
+        ...prev,
+        [current.id]: {
+          factIndex: Math.floor(Math.random() * pool.length),
+          order: shuffledOrder(),
+          answered: null,
+        },
+      }
+    })
+    setFlipped(true)
+  }
+
+  function handleCloseTrivia() {
+    setFlipped(false)
+  }
+
+  function handleAnswer(position) {
+    if (!current) return
+    setCardTrivia((prev) => {
+      const entry = prev[current.id]
+      if (!entry || entry.answered !== null) return prev
+      return { ...prev, [current.id]: { ...entry, answered: position } }
+    })
   }
 
   function handleBack() {
@@ -72,6 +127,10 @@ function App() {
   function handleCloseGrid() {
     setShowGrid(false)
   }
+
+  useEffect(() => {
+    if (autoSeconds !== null) setFlipped(false)
+  }, [autoSeconds])
 
   useEffect(() => {
     if (!started || autoSeconds === null || showGrid) return undefined
@@ -130,6 +189,27 @@ function App() {
         </button>
       )}
 
+      {started && (
+        <div className="lang-toggle" role="group" aria-label="Idioma de trivia">
+          <button
+            type="button"
+            className={language === 'es' ? 'active' : ''}
+            onClick={() => setLanguage('es')}
+            aria-pressed={language === 'es'}
+          >
+            ES
+          </button>
+          <button
+            type="button"
+            className={language === 'en' ? 'active' : ''}
+            onClick={() => setLanguage('en')}
+            aria-pressed={language === 'en'}
+          >
+            EN
+          </button>
+        </div>
+      )}
+
       <div className="auto-controls">
         <span className="auto-label">Auto</span>
         <div className="auto-options">
@@ -148,11 +228,67 @@ function App() {
       </div>
 
       <div className="card-frame">
-        <img
-          className="card-image"
-          src={started ? current.src : TITLE_CARD}
-          alt={started ? current.label : 'Lotería'}
-        />
+        <div className={`card-flip${flipped ? ' flipped' : ''}${canFlip && !flipped ? ' is-tappable' : ''}`}>
+          <div className="card-flip-inner">
+            <div className="card-face card-face--front" onClick={handleCardTap}>
+              <img
+                className="card-image"
+                src={started ? current.src : TITLE_CARD}
+                alt={started ? current.label : 'Lotería'}
+              />
+            </div>
+            <div className="card-face card-face--back">
+              {trivia && (
+                <div className="trivia-panel">
+                  <p className="trivia-question">
+                    {language === 'es' ? trivia.fact.questionEs : trivia.fact.questionEn}
+                  </p>
+                  <div className="trivia-choices">
+                    {trivia.order.map((choiceIdx, position) => {
+                      const label =
+                        language === 'es' ? trivia.fact.choicesEs[choiceIdx] : trivia.fact.choicesEn[choiceIdx]
+                      const isCorrectChoice = choiceIdx === trivia.fact.correct
+                      const revealed = trivia.answered !== null
+                      const isSelected = trivia.answered === position
+                      let stateClass = ''
+                      if (revealed && isCorrectChoice) stateClass = ' correct'
+                      else if (revealed && isSelected) stateClass = ' incorrect'
+                      return (
+                        <button
+                          key={position}
+                          type="button"
+                          className={`trivia-choice${stateClass}`}
+                          onClick={() => handleAnswer(position)}
+                          disabled={revealed}
+                        >
+                          {label}
+                        </button>
+                      )
+                    })}
+                  </div>
+                  {trivia.answered !== null && (
+                    <p
+                      className={`trivia-result ${
+                        trivia.order[trivia.answered] === trivia.fact.correct ? 'is-correct' : 'is-incorrect'
+                      }`}
+                    >
+                      {trivia.order[trivia.answered] === trivia.fact.correct
+                        ? language === 'es'
+                          ? '¡Correcto!'
+                          : 'Correct!'
+                        : language === 'es'
+                          ? 'Incorrecto'
+                          : 'Incorrect'}
+                    </p>
+                  )}
+                  <button type="button" className="trivia-close" onClick={handleCloseTrivia}>
+                    {language === 'es' ? 'Cerrar' : 'Close'}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
       {!started && (
@@ -161,7 +297,7 @@ function App() {
         </button>
       )}
 
-      {started && (
+      {started && !flipped && (
         <div className="nav-buttons">
           <button
             type="button"
@@ -184,7 +320,7 @@ function App() {
         </div>
       )}
 
-      {started && (
+      {started && !flipped && (
         <button
           type="button"
           className="grid-button"
