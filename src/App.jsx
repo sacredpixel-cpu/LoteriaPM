@@ -189,7 +189,7 @@ function App() {
         </button>
       )}
 
-      {started && (
+      {started && flipped && trivia && (
         <div className="lang-toggle" role="group" aria-label="Idioma de trivia">
           <button
             type="button"

@@ -21,11 +21,7 @@
 
 .card-flip {
   position: relative;
-  width: min(92vw, 480px);
-  max-height: 68svh;
-  aspect-ratio: 0.71;
-  border-radius: 14px;
-  box-shadow: 0 12px 30px rgba(58, 44, 32, 0.35);
+  perspective: 1600px;
 }
 
 .card-flip.is-tappable .card-face--front {
@@ -34,8 +30,7 @@
 
 .card-flip-inner {
   position: relative;
-  width: 100%;
-  height: 100%;
+  display: inline-block;
   transition: transform 0.65s cubic-bezier(0.4, 0.15, 0.2, 1);
   transform-style: preserve-3d;
 }
@@ -45,18 +40,22 @@
 }
 
 .card-face {
-  position: absolute;
-  inset: 0;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  border-radius: 14px;
-  overflow: hidden;
+}
+
+.card-face--front {
+  display: block;
 }
 
 .card-face--back {
+  position: absolute;
+  inset: 0;
   transform: rotateY(180deg);
   background: var(--panel);
   border: 2px solid var(--gold);
+  border-radius: 14px;
+  overflow: hidden;
   display: flex;
 }
 
@@ -69,10 +68,14 @@
 }
 
 .card-image {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+  max-width: min(92vw, 480px);
+  max-height: 68svh;
+  width: auto;
+  height: auto;
   display: block;
+  object-fit: contain;
+  border-radius: 14px;
+  box-shadow: 0 12px 30px rgba(58, 44, 32, 0.35);
   background: var(--panel);
 }
 
